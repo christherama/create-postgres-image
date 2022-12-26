@@ -1,0 +1,48 @@
+name: Create and Push Postgres Docker Image
+description: Creates a Postgres database image with an arbitrary snapshot of data
+
+inputs:
+  docker-registry:
+    description: Docker registry
+    required: false
+  docker-username:
+    description: Docker registry username
+    required: false
+  docker-password:
+    description: Docker registry password or token
+    required: false
+  postgres-version:
+    description: Database engine version
+    required: true
+  postgres-username:
+    description: Postgres username to use when starting new database
+    default: postgres
+    required: false
+  postgres-password:
+    description: Postgres password to use when starting new database
+    default: password
+    required: false
+  postgres-database:
+    description: Database name
+    default: postgres
+    required: false
+  repository:
+    description: Docker image repository
+    required: true
+  tag:
+    description: Tag to use for generated Docker image
+    required: true
+
+runs:
+  using: docker
+  image: Dockerfile
+  args:
+    - ${{ inputs.docker-registry }}
+    - ${{ inputs.docker-username}}
+    - ${{ inputs.docker-password }}
+    - ${{ inputs.postgres-version }}
+    - ${{ inputs.postgres-database }}
+    - ${{ inputs.postgres-username }}
+    - ${{ inputs.postgres-password }}
+    - ${{ inputs.repository }}
+    - ${{ inputs.tag }}
