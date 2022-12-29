@@ -1,0 +1,88 @@
+on:
+  workflow_call:
+    inputs:
+      docker-registry:
+        description: Docker registry
+        required: false
+      docker-username:
+        description: Docker registry username
+        required: false
+      docker-password:
+        description: Docker registry password or token
+        required: false
+      postgres-version:
+        description: Database engine version
+        required: true
+      postgres-username:
+        description: Postgres username to use when starting new database
+        default: postgres
+        required: false
+      postgres-password:
+        description: Postgres password to use when starting new database
+        default: password
+        required: false
+      postgres-database:
+        description: Database name
+        default: postgres
+        required: false
+      command-image-repository:
+        description: Docker image repository to use for pulling image used for running commands
+        required: true
+      command-image-tag:
+        description: Tag to use when pulling image used for running commands
+        required: true
+      command-env:
+        description: Multiline environment variable values
+        required: false
+      run:
+        description: Command(s) to run on specified container
+        required: true
+
+jobs:
+  pg-dump:
+    name: Migrate and dump database
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: bitnami/postgresql:${{ inputs.postgres-version }}
+        env:
+          POSTGRES_USER: ${{ inputs.postgres-username }}
+          POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
+          POSTGRES_DB: ${{ inputs.postgres-database }}
+          POSTGRES_POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
+        ports:
+          - 5432:5432
+    container:
+      image: ${{ inputs.command-image-repository }}:${{ inputs.command-image-tag }}
+      credentials:
+        username: ${{ inputs.docker-username }}
+        password: ${{ inputs.docker-password }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run commands
+        env:
+          # TODO: Figure out how to map ${{ inputs.command-env }} to a valid env definition
+          DATABASE_HOST: postgres
+        run: |
+          mkdir .data
+          chmod a+w .data
+          ${{ inputs.run }}
+      - name: Perform pg_dump
+        uses: addnab/docker-run-action@v3
+        with:
+          image: bitnami/postgresql:${{ inputs.postgres-version }}
+          options: -v ${{ github.workspace }}/.data:/tmp/pgdump -e PGPASSWORD=${{ inputs.postgres-password }}
+          run: |
+            pg_dump \
+              --host=postgres \
+              --dbname=${{ inputs.postgres-database }} \
+              --username=${{ inputs.postgres-username }} \
+              --no-owner \
+              --no-privileges \
+              --compress=9 \
+              --file=/tmp/pgdump/data.sql.gz
+      - name: Upload pg_dump archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: pg-data
+          path: ./.data/data.sql.gz
