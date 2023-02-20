@@ -32,16 +32,33 @@ on:
         description: Tag to use when pulling image used for running commands
         required: true
       command-env:
-        description: Multiline environment variable values
+        description: Multiline environment variable values, .env style
         required: false
       run:
         description: Command(s) to run on specified container
         required: true
+      postgres-image-repository:
+        description: Docker image repository to use for pushing generated Postgres image
+        required: true
+      postgres-image-tag:
+        description: Tag to use for generated Postgres image
+        required: true
 
 jobs:
+  create-dot-env:
+    name: Create .env file
+    runs-on: ubuntu-22.04
+    outputs:
+      dot-env: ${{ steps.create.outputs.file }}
+    steps:
+      - id: create
+        run: |
+          # TODO
   pg-dump:
-    name: Migrate and dump database
-    runs-on: ubuntu-latest
+    name: Create pg_dump
+    runs-on: ubuntu-22.04
+    needs:
+      - create-dot-env
     services:
       postgres:
         image: bitnami/postgresql:${{ inputs.postgres-version }}
@@ -54,15 +71,12 @@ jobs:
           - 5432:5432
     container:
       image: ${{ inputs.command-image-repository }}:${{ inputs.command-image-tag }}
+      options: --env-file ${{ needs.create-env-file.outputs.dot-dev }}
       credentials:
         username: ${{ inputs.docker-username }}
         password: ${{ inputs.docker-password }}
     steps:
-      - uses: actions/checkout@v3
       - name: Run commands
-        env:
-          # TODO: Figure out how to map ${{ inputs.command-env }} to a valid env definition
-          DATABASE_HOST: postgres
         run: |
           mkdir .data
           chmod a+w .data
@@ -86,3 +100,28 @@ jobs:
         with:
           name: pg-data
           path: ./.data/data.sql.gz
+  build-postgres-image:
+    name: Build postgres image
+    runs-on: ubunutu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: christherama/create-postgres-image
+          ref: v1
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.docker-registry }}
+          username: ${{ inputs.docker-username }}
+          password: ${{ inputs.docker-password }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          build-args: |
+            POSTGRES_VERSION=${{ inputs.postgres-version }}
+          push: true
+          tags: ${{ inputs.postgres-image-repository }}:${{ inputs.postgres-image-tag }}
