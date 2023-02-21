@@ -61,7 +61,7 @@ jobs:
   set-docker-password:
     runs-on: ubuntu-22.04
     outputs:
-      tag: ${{ steps.pw.outputs.DOCKER_PASSWORD }}
+      docker-password: ${{ steps.pw.outputs.DOCKER_PASSWORD }}
     steps:
       - id: pw
         run: |
@@ -88,7 +88,7 @@ jobs:
       image: ${{ inputs.command-image-repository }}:${{ inputs.command-image-tag }}
       credentials:
         username: ${{ inputs.docker-username }}
-        password: ${{ needs.set-docker-password.outputs.DOCKER_PASSWORD }}
+        password: ${{ needs.set-docker-password.outputs.docker-password }}
     steps:
       - name: Run commands
         run: |
@@ -130,7 +130,7 @@ jobs:
         with:
           registry: ${{ inputs.docker-registry }}
           username: ${{ inputs.docker-username }}
-          password: ${{ needs.set-docker-password.outputs.DOCKER_PASSWORD }}
+          password: ${{ needs.set-docker-password.outputs.docker-password }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and push image
