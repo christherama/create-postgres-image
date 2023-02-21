@@ -45,20 +45,9 @@ on:
         required: true
 
 jobs:
-  create-dot-env:
-    name: Create .env file
+  create-data:
+    name: Create and dump data
     runs-on: ubuntu-22.04
-    outputs:
-      dot-env: ${{ steps.create.outputs.file }}
-    steps:
-      - id: create
-        run: |
-          # TODO
-  pg-dump:
-    name: Create pg_dump
-    runs-on: ubuntu-22.04
-    needs:
-      - create-dot-env
     services:
       postgres:
         image: bitnami/postgresql:${{ inputs.postgres-version }}
@@ -71,7 +60,6 @@ jobs:
           - 5432:5432
     container:
       image: ${{ inputs.command-image-repository }}:${{ inputs.command-image-tag }}
-      options: --env-file ${{ needs.create-env-file.outputs.dot-dev }}
       credentials:
         username: ${{ inputs.docker-username }}
         password: ${{ inputs.docker-password }}
@@ -80,6 +68,7 @@ jobs:
         run: |
           mkdir .data
           chmod a+w .data
+          export $(echo ${{ inputs.command-env }} | xargs)
           ${{ inputs.run }}
       - name: Perform pg_dump
         uses: addnab/docker-run-action@v3
