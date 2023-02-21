@@ -4,45 +4,58 @@ on:
       docker-registry:
         description: Docker registry
         required: false
+        type: string
       docker-username:
         description: Docker registry username
         required: false
+        type: string
       docker-password:
         description: Docker registry password or token
         required: false
+        type: string
       postgres-version:
         description: Database engine version
         required: true
+        type: string
       postgres-username:
         description: Postgres username to use when starting new database
         default: postgres
         required: false
+        type: string
       postgres-password:
         description: Postgres password to use when starting new database
         default: password
         required: false
+        type: string
       postgres-database:
         description: Database name
         default: postgres
         required: false
+        type: string
       command-image-repository:
         description: Docker image repository to use for pulling image used for running commands
         required: true
+        type: string
       command-image-tag:
         description: Tag to use when pulling image used for running commands
         required: true
+        type: string
       command-env:
         description: Multiline environment variable values, .env style
         required: false
+        type: string
       run:
         description: Command(s) to run on specified container
         required: true
+        type: string
       postgres-image-repository:
         description: Docker image repository to use for pushing generated Postgres image
         required: true
+        type: string
       postgres-image-tag:
         description: Tag to use for generated Postgres image
         required: true
+        type: string
 
 jobs:
   create-data:
@@ -56,6 +69,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
           POSTGRES_DB: ${{ inputs.postgres-database }}
           POSTGRES_POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
+        options: --health-cmd "CMD-SHELL pg_isready -U ${{ inputs.postgres-username }}" --health-interval=5s
         ports:
           - 5432:5432
     container:
