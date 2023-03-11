@@ -56,7 +56,6 @@ on:
       docker-password:
         description: Docker registry password or token
         required: false
-        type: string
 
 jobs:
   create-data:
