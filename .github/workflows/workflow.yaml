@@ -9,10 +9,6 @@ on:
         description: Docker registry username
         required: false
         type: string
-      docker-password:
-        description: Docker registry password or token
-        required: false
-        type: string
       postgres-version:
         description: Database engine version
         required: true
@@ -56,6 +52,11 @@ on:
         description: Tag to use for generated Postgres image
         required: true
         type: string
+    secrets:
+      docker-password:
+        description: Docker registry password or token
+        required: false
+        type: string
 
 jobs:
   create-data:
@@ -76,7 +77,7 @@ jobs:
       image: ${{ inputs.command-image-repository }}:${{ inputs.command-image-tag }}
       credentials:
         username: ${{ inputs.docker-username }}
-        password: ${{ inputs.docker-password }}
+        password: ${{ secrets.docker-password }}
     steps:
       - name: Run commands
         run: |
@@ -117,7 +118,7 @@ jobs:
         with:
           registry: ${{ inputs.docker-registry }}
           username: ${{ inputs.docker-username }}
-          password: ${{ inputs.docker-password }}
+          password: ${{ secrets.docker-password }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build and push image
