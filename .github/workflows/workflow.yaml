@@ -65,11 +65,11 @@ jobs:
       postgres:
         image: bitnami/postgresql:${{ inputs.postgres-version }}
         env:
-          POSTGRES_USER: ${{ inputs.postgres-username }}
-          POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
-          POSTGRES_DB: ${{ inputs.postgres-database }}
-          POSTGRES_POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
-        options: --health-cmd "CMD-SHELL pg_isready -U ${{ inputs.postgres-username }}" --health-start-period=30s --health-interval=5s --health-retries=10
+          POSTGRESQL_USERNAME: ${{ inputs.postgres-username }}
+          POSTGRESQL_PASSWORD: ${{ inputs.postgres-password }}
+          POSTGRESQL_DATABASE: ${{ inputs.postgres-database }}
+          POSTGRESQL_POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
+        options: --health-cmd "pg_isready -U ${{ inputs.postgres-username }}"
         ports:
           - 5432:5432
     container:
