@@ -105,7 +105,7 @@ jobs:
           path: ./.data/data.sql.gz
   build-postgres-image:
     name: Build postgres image
-    runs-on: ubunutu-22.04
+    runs-on: ubuntu-22.04
     needs:
       - create-data
     steps:
