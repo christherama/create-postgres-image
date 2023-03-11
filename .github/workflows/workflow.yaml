@@ -69,7 +69,7 @@ jobs:
           POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
           POSTGRES_DB: ${{ inputs.postgres-database }}
           POSTGRES_POSTGRES_PASSWORD: ${{ inputs.postgres-password }}
-        options: --health-cmd "CMD-SHELL pg_isready -U ${{ inputs.postgres-username }}" --health-interval=5s
+        options: --health-cmd "CMD-SHELL pg_isready -U ${{ inputs.postgres-username }}" --health-interval=5s --retries=10
         ports:
           - 5432:5432
     container:
